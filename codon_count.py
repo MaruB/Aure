@@ -6,6 +6,10 @@ import pandas as pd
 
 script, fasta_file_input = argv
 
+# the cds from ENSEMBL also has the genes from Mt and Chl
+# take out those within script or ask for an input that only has
+# genes from chromosomes?
+
 # don't know how to put options like -f input fasta etc
 
 # raise an error if the input file is not .fasta
@@ -45,6 +49,10 @@ def count_codons(fasta_file):
 
     # iterate over sequence and count all the codons in the FastaFile.
     for cur_record in SeqIO.parse(handle, "fasta"):
+        # needs to check if the format and contents are appropriate
+        # eg: starts with ATG, ends with stop codon, is a multiple of 3,
+        # only contains ATCG
+        
         # make the codon dictionary local
         codon_count = CodonsDict.copy()
         dna_sequence = str(cur_record.seq).upper() # do it with if or not necessary?
@@ -55,9 +63,11 @@ def count_codons(fasta_file):
             if codon in codon_count:
                 codon_count[codon] += 1
 
-            else: # like this or should write into a file too?
-                raise TypeError("Illegal codon %s in gene: %s" % (codon, cur_record.id))
-
+            #else: # like this or should write into a file too?
+                #raise TypeError("Illegal codon %s in gene: %s" % (codon, cur_record.id))
+            # !! I had to take this error out cause the cds fasta from ENSEMBL
+            # had a few codons not in the dict (eg. with N or K)
+            # check what to do with this
         gene_ids.append(cur_record.id)
         output.append(codon_count)
 
