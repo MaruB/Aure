@@ -7,12 +7,13 @@ import pandas as pd
 script, fasta_file_input = argv
 
 # the cds from ENSEMBL also has the genes from Mt and Chl
-# take out those within script or ask for an input that only has
-# genes from chromosomes?
+# keep them or take out those within script or ask for an
+# input that only has genes from chromosomes?
 
 # don't know how to put options like -f input fasta etc
 
 # raise an error if the input file is not .fasta
+# is that necessary? put options to parse other kinds of files?
 # do some checks to see that the fasta is ok
 # write an output error file if necessary
 
@@ -52,7 +53,7 @@ def count_codons(fasta_file):
         # needs to check if the format and contents are appropriate
         # eg: starts with ATG, ends with stop codon, is a multiple of 3,
         # only contains ATCG
-        
+
         # make the codon dictionary local
         codon_count = CodonsDict.copy()
         dna_sequence = str(cur_record.seq).upper() # do it with if or not necessary?
@@ -77,7 +78,7 @@ def count_codons(fasta_file):
     cols = df_output.columns.tolist()
     cols = cols[-1:] + cols[:-1]
     df_output = df_output[cols]
-    df_output.to_csv('output.csv')
+    df_output.to_csv('output.csv') # make the file name related to the input
 
     # close handle
     handle.close()
