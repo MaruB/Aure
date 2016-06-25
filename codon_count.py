@@ -79,6 +79,12 @@ def count_codons(fasta_file):
     # initialize variable with number of illegal codons
     illegal_codons = 0
 
+    # initialize variable with number of genes that don't start with ATG
+    non_atg = 0
+
+    # initialize variable with number of genes that don't end with a stop codon
+    non_stop = 0
+
 
     # iterate over sequence and count all the codons in the FastaFile
     for cur_record in SeqIO.parse(handle, 'fasta'):
@@ -92,8 +98,25 @@ def count_codons(fasta_file):
         # change DNA sequences to uppercase
         dna_sequence = str(cur_record.seq).upper()  # do it with if or not necessary?
 
+        # checks if cds sequence starts with 'ATG'
+        if cur_record.seq[0:3] != 'ATG':
+
+            logger.info('ID %s does not start with "ATG"', cur_record.id)
+            non_atg += 1
+            # decide whether all these are info or debug
+            # give this info or just number?
+
+        # checks if cds sequence ends with a stop codon
+        if cur_record.seq[-3:] != 'TAG' and cur_record.seq[-3:] != 'TAA' and \
+            cur_record.seq[-3:] != 'TGA':
+
+            logger.info('ID %s does not end with a stop codon (TAG, TAA, TGG)',
+                        cur_record.id)
+            non_stop += 1
+
         # read from beginning to end, 3 by 3
         for i in range(0, len(dna_sequence), 3):
+
             codon = dna_sequence[i:i+3]
 
             if codon in codon_count:
@@ -107,6 +130,7 @@ def count_codons(fasta_file):
         # add gene ids and codon counts to their respective list
         gene_ids.append(cur_record.id)
         output.append(codon_count)
+
     # issue summary warning if there are illegal codons in the fasta file
     if illegal_codons == 0:
         logger.info('No illegal codons in the fasta file')
@@ -114,12 +138,24 @@ def count_codons(fasta_file):
         logger.warning('There are %d illegal codons in the fasta file',
                        illegal_codons)
 
+    # issue summary warning if there are genes that don't start with ATG
+    if non_atg == 0:
+        logger.info('All genes start with "ATG"')
+    else:
+        logger.warning('There are %d genes that don\'t start with "ATG"', non_atg)
+
+    # issue summary warning if there are genes that don't end with stop codons
+    if non_stop == 0:
+        logger.info('All genes end with stop codons')
+    else:
+        logger.warning('There are %d genes that don\'t end with stop codons', non_stop)
+
     # how to print the gene name with different fasta formats
     # gff?
 
     # create data frame from lists
     df_output = pd.DataFrame(output)
-    df_output['gene_id'] = gene_ids
+    df_output['gene_id'] = gene_ids #  take out the .1/2 in the id or take from gff
     cols = df_output.columns.tolist()
     cols = cols[-1:] + cols[:-1]
     df_output = df_output[cols]
@@ -128,8 +164,11 @@ def count_codons(fasta_file):
     df_output.to_csv('output_test.csv') # make the file name related to the input
     # maybe create a folder for output?
     logger.info('Creating output file: "output.csv"')
-
-    logger.warning('Check log.txt for more information')  # only if warnings?
+    # tell user where the results are stored
+    # this should be done with INFO level if we display that to the console,
+    # leaving others with debug level
+    logger.warning('The results are stored in the "output.csv" file')
+    logger.warning('Check log.txt for more information')
 
     # close handle
     handle.close()
